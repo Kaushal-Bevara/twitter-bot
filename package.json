@@ -1,7 +1,7 @@
 {
-  "name": "reuters-twitter-bot",
+  "name": "history-twitter-bot",
   "version": "1.0.0",
-  "description": "NodeJs Twitter bot that uploads headlines of articles from reuters.com",
+  "description": "NodeJs Twitter bot that uploads significant historical events that occured each day in years prior.",
   "main": "index.js",
   "scripts": {
     "start": "node --watch index.js",
@@ -26,5 +26,5 @@
     "cheerio": "^1.0.0-rc.12",
     "twitter": "^1.7.1"
   },
-  "type" : "module"
+  "type":"module"
 }
