@@ -1,6 +1,13 @@
 import cheerio from 'cheerio';
 import axios from 'axios';
+import * as dotenv  from 'dotenv';
+import { CronJob } from 'cron';
+import { twitterClient } from './twitterclient.js';
+
 import { htmlPage } from './html.js';
+
+dotenv.config({path : './.env'}); 
+
 
 
 async function getWebPage() { // gets the web page with a get request
@@ -23,8 +30,7 @@ function parseHtml(webpage) { // passes the outerhtml as a string to this functi
     // parse html
     const $ = cheerio.load(webpage);
     const eventsDiv = $('div.no-padding-bottom > div.wrapper');
-
-    console.log(eventsDiv.html()+"\n\n\n");
+ 
 
     const eventsList = [];
 
@@ -35,13 +41,13 @@ function parseHtml(webpage) { // passes the outerhtml as a string to this functi
                                                         // because all images have at least one div with a class event photo
 
             const event = $(li).text(); // gets event in format : {date} {description}
-                                        // we will convert it to the format: In {date}, {description}.
+                                        // we will convert it to the format: On this day in {date}, {description}.
 
             const index = event.indexOf(" "); // gets index where date ends
             const date = event.substring(0, index);  // gets date
             const description = event.substring(index + " "); // gets description
 
-            eventsList.push("In " + date + `,` + description + "."); // concatenates the full string and pushes it into the array
+            eventsList.push("On this day in " + date + `,` + description + "."); // concatenates the full string and pushes it into the array
         }
 
     });
@@ -50,12 +56,38 @@ function parseHtml(webpage) { // passes the outerhtml as a string to this functi
 
 }
 
+async function sendTweets(list) { // sends tweets via the twitter api
 
+    for (let i = 0; i < list.length; i++) {
+        try {
+            await twitterClient.v2.tweet(list[i]);
+            console.log("tweet sent succesfully: " , list[i]);
+        } catch(e) {
+            console.log(e.data.detail);
+        }
 
-// getWebPage().then((res) => parseHtml(res)) // gets webpage with an axios request and then passes it to the parseHtml function
+    }
 
-const eventsList = parseHtml(htmlPage);
-
-for (let i = 0; i < eventsList.length; i++) { // tests if the parseHtml and getWebPage functions work
-    console.log(eventsList[i] + "\n");
 }
+
+    console.log("creating cron job");
+
+const cronTweets = new CronJob("@daily", async () => {
+
+    console.log("running cron job");
+
+    // getWebPage fetches the web page from the url
+    // the webpage is passed to parseHtml which extracts the data from the page
+    // the data is passed to send tweets which finally sends the tweets with the twiiter client
+
+    getWebPage().then(async (res) => {
+
+        const list = parseHtml(res);
+        console.log('run jobs');
+        await sendTweets(list);
+
+    }).catch(e => console.log(e));       
+
+});
+
+cronTweets.start();
