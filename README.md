@@ -5,7 +5,8 @@ This Twitter bot tweets out what historical events happened on each day. It will
 [The Bot](https://x.com/TodaysHistoryXY)
 
 
-![Uploading image.png…]()
+![Screenshot 2024-05-21 073413](https://github.com/Kaushal-Bevara/twitter-bot/assets/123275654/a7dd0cc5-ba3a-4ed2-9711-b5a9dc8ef1c8)
+
 
 
 # Credits
