@@ -1,13 +1,6 @@
-import cheerio from 'cheerio';
-import axios from 'axios';
-import * as dotenv  from 'dotenv';
-import { CronJob } from 'cron';
-import { twitterClient } from './twitterclient.js';
-
-import { htmlPage } from './html.js';
-
-dotenv.config({path : './.env'}); 
-
+import axios from "axios";
+import * as cheerio from "cheerio";
+import { twitterClient } from "./twitterClient.js";
 
 
 async function getWebPage() { // gets the web page with a get request
@@ -47,7 +40,7 @@ function parseHtml(webpage) { // passes the outerhtml as a string to this functi
             const date = event.substring(0, index);  // gets date
             const description = event.substring(index + " "); // gets description
 
-            eventsList.push("On this day in " + date + `,` + description + "."); // concatenates the full string and pushes it into the array
+            eventsList.push("On this day in " + date + `,` + description + ".#history"); // concatenates the full string and pushes it into the array
         }
 
     });
@@ -56,38 +49,26 @@ function parseHtml(webpage) { // passes the outerhtml as a string to this functi
 
 }
 
-async function sendTweets(list) { // sends tweets via the twitter api
+async function sendTweets() { // sends tweets via the twitter api
+
+    const webpage = await getWebPage();
+    const list = parseHtml(webpage);
+    
 
     for (let i = 0; i < list.length; i++) {
         try {
             await twitterClient.v2.tweet(list[i]);
             console.log("tweet sent succesfully: " , list[i]);
+            return true;
         } catch(e) {
             console.log(e.data.detail);
+            return false;
         }
 
     }
 
 }
 
-    console.log("creating cron job");
-
-const cronTweets = new CronJob("@daily", async () => {
-
-    console.log("running cron job");
-
-    // getWebPage fetches the web page from the url
-    // the webpage is passed to parseHtml which extracts the data from the page
-    // the data is passed to send tweets which finally sends the tweets with the twiiter client
-
-    getWebPage().then(async (res) => {
-
-        const list = parseHtml(res);
-        console.log('run jobs');
-        await sendTweets(list);
-
-    }).catch(e => console.log(e));       
-
-});
-
-cronTweets.start();
+export {
+    sendTweets,
+};
